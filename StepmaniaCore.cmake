@@ -116,6 +116,10 @@ elseif(MACOSX)
 elseif(LINUX OR BSD)
   include(TestBigEndian)
   include(ExternalProject)
+  if(BSD)
+    set(WITH_MP3 ON) #Forcing those Flags on BSD as they are not set in DefineOptions.cmake.
+    set(WITH_OGG ON)
+  endif()
 
   if(NOT WITH_GPL_LIBS)
     message("Disabling GPL exclusive libraries: no MP3 support.")
@@ -319,6 +323,9 @@ elseif(LINUX OR BSD)
   find_package(GLEW REQUIRED)
   if (NOT ${GLEW_FOUND})
     message(FATAL_ERROR "GLEW required to compile StepMania.")
+  else()
+    set(HAS_GLEW TRUE) #Just used for BSD right now, as the bundled version does not work there.
+    message("HAS_GLEW set")
   endif()
 
   test_big_endian(BIGENDIAN)

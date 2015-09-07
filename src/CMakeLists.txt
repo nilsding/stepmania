@@ -206,7 +206,7 @@ set_target_properties("${SM_EXE_NAME}" PROPERTIES
 
 if (WITH_PORTABLE_TOMCRYPT)
   sm_add_compile_definition("${SM_EXE_NAME}" LTC_NO_ASM)
-elseif (WITH_NO_ROLC_TOMCRYPT OR APPLE)
+elseif (WITH_NO_ROLC_TOMCRYPT OR APPLE OR BSD)
   sm_add_compile_definition("${SM_EXE_NAME}" LTC_NO_ROLC)
 endif()
 
@@ -388,7 +388,7 @@ else() # Linux
     sm_add_compile_definition("${SM_EXE_NAME}" HAVE_LIBPTHREAD)
 
     message("Host processor is ${CMAKE_SYSTEM_PROCESSOR}")
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "amd64")
       message("Host processor is 64bit")
       sm_add_compile_definition("${SM_EXE_NAME}" CPU_X86_64)
     else()
@@ -401,6 +401,7 @@ else() # Linux
   endif()
   if (BSD)
     sm_add_compile_definition("${SM_EXE_NAME}" BSD)
+    list(APPEND SMDATA_LINK_LIB "-L/usr/local/lib")
   endif()
 
   if (GTK2_FOUND)
@@ -513,6 +514,33 @@ else() # Unix / Linux
   # TODO: Remember to find and locate the zip archive files.
   list(FIND SMDATA_LINK_LIB "jpeg" JPEG_INDEX)
   sm_list_replace(SMDATA_LINK_LIB ${JPEG_INDEX} "${JPEG_LIBRARY}")
+#  list(LENGTH SMDATA_LINK_LIB SMDATA_SIZE)
+#  list(REMOVE_ITEM SMDATA_LINK_LIB "mad")
+#  if(JPEG_INDEX GREATER SMDATA_SIZE)
+#    list(APPEND SMDATA_LINK_LIB ${JPEG_LIBRARY})
+#  else()
+#    message("SMDATA size is ${SMDATA_SIZE}")
+#    list(INSERT SMDATA_LINK_LIB ${JPEG_INDEX} ${JPEG_LIBRARY})
+#  endif()
+ 
+#  if (BSD AND HAS_GLEW)
+#    list(APPEND SMDATA_LINK_LIB "-L/usr/local/lib")
+#    list(FIND SMDATA_LINK_LIB "glew" GLEW_INDEX)
+#    if (GLEW_INDEX MATCHES -1)
+#      message(FATAL_ERROR glew string not found)
+#    else()
+#      message("GLEW_INDEX is ${GLEW_INDEX}")
+#    endif()
+#    sm_list_replace(SMDATA_LINK_LIB ${GLEW_INDEX} ${GLEW_LIBRARY})
+#    message(STATUS "Replaced glew with ${GLEW_LIBRARY}")
+#  endif()
+
+  if (BSD AND HAS_GLEW)
+    list(FIND SMDATA_LINK_LIB "glew" GLEW_INDEX)
+    list(REMOVE_ITEM SMDATA_LINK_LIB "glew")
+    list(INSERT SMDATA_LINK_LIB ${GLEW_INDEX} ${GLEW_LIBRARY})
+  endif()
+
   if (HAS_FFMPEG)
     if(WITH_SYSTEM_FFMPEG)
       list(APPEND SMDATA_LINK_LIB
@@ -550,9 +578,15 @@ else() # Unix / Linux
   endif()
 
   if(HAS_MP3)
-    list(APPEND SMDATA_LINK_LIB
-      "${LIBMAD_LIBRARY}"
-    )
+    list(FIND SMDATA_LINK_LIB "mad" MAD_INDEX)
+    if(NOT MAD_INDEX MATCHES -1)
+      list(REMOVE_ITEM SMDATA_LINK_LIB "mad")
+      list(INSERT SMDATA_LINK_LIB ${MAD_INDEX} ${LIBMAD_LIBRARY}) #Maybe use sm_list_replace instead?
+    else()
+      list(APPEND SMDATA_LINK_LIB
+	"${LIBMAD_LIBRARY}"
+      )
+    endif()
   endif()
 
   list(APPEND SMDATA_LINK_LIB

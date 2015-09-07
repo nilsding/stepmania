@@ -1,6 +1,10 @@
 #ifndef ARCH_HOOKS_H
 #define ARCH_HOOKS_H
 
+#ifdef BSD
+#include <time.h>
+#endif
+
 struct lua_State;
 class ArchHooks
 {
