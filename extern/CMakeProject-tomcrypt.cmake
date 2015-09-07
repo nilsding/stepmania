@@ -271,7 +271,7 @@ set_property(TARGET "tomcrypt" PROPERTY FOLDER "External Libraries")
 
 if (WITH_PORTABLE_TOMCRYPT)
   sm_add_compile_definition("tomcrypt" LTC_NO_ASM)
-elseif(WITH_NO_ROLC_TOMCRYPT AND NOT APPLE)
+elseif((WITH_NO_ROLC_TOMCRYPT AND NOT APPLE) OR BSD)	#BSD uses clang just as OSX -> we need this
   sm_add_compile_definition("tomcrypt" LTC_NO_ROLC)
 endif()
 
